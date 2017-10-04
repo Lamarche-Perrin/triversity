@@ -2,18 +2,53 @@
 % Please edit documentation in R/triversity.R
 \name{get_tripartite}
 \alias{get_tripartite}
-\title{Load a tripartite graph}
+\title{Get a properly-structured tripartite graph from raw data.}
 \usage{
 get_tripartite(filename = NULL, data = NULL)
 }
 \arguments{
-\item{filename}{The file containing the tripartite graph}
+\item{filename}{The path to the file containing raw data to build the tripartite graph.
 
-\item{data}{A data.frame containing the tripartite graph}
+This input file should have
+at least four columns, separated by spaces. Each row describe a link between
+two nodes belonging to two different levels of the tripartite graph.
+The first column indicates the level of the first node (any integer among
+\code{1}, \code{2}, or \code{3}) and the
+second column indicates its name (any character string). Similarly, the third
+and fourth columns indicate the level and the name of the second node.
+A fifth column can be added to indicate the eventual weights of the links
+(any integer or float value).}
+
+\item{data}{A \code{data.frame} containing the raw data to build the tripartite graph.
+
+This \code{data.frame} should have the same structure than the one described above
+when using an input file: four columns indicating (in the same order) the
+levels and the names of the two nodes constituting the link, and an optional
+fifth column fot its weight.}
 }
 \value{
-A tripartite graph
+A properly-structured tripartite graph that can be used by the other functions
+of the \code{triversity} package.
+
+The resulting data structure describe the different levels of the tripartite
+graph, as well as its transition probabilities (encoded as sparse float matrices)
+each following a given paths from one level to another. These transition matrices
+are then used by functions such as \code{\link{get_distribution_from_path}} to
+compute a distribution from a given path traveling through the different levels
+of the graph.
+
+Once the \code{value} returned by \code{get_tripartite}:
+\itemize{
+\item \code{value$nodes} is a list of vectors contraining the names of the nodes
+constituting the three levels of the tripartite graph
+(resp. \code{value$nodes$level1}, \code{value$nodes$level2}, and \code{value$nodes$level3}).
+\item \code{value$transitions} is a \code{data.tree} which nodes each contains a
+transition matrix. For example, \code{value$transitions$level1$level2$mat} is the
+transition matrix from level 1 to level 2.
+}
 }
 \description{
-Load a tripartite graph
+\code{get_tripartite} returns a properly-structured tripartite graph
+from a file or from a dataframe. The structure of the input data and
+of the resultung data structure is detailed below.
 }

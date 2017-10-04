@@ -22,13 +22,94 @@
 ## with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+#' Compute diversity measures on tripartite graphs.
+#'
+#' \code{triversity} is an R package for the computation of diversity measures
+#' on tripartite graphs. It first implements a parametrised family of such
+#' diversity measures applying on probability distributions. Sometimes called
+#' "True Diversity", this family contains famous measures such as the Richness,
+#' the Shannon entropy, the Herfindahl-Hirschman index, and the Berger-Parker
+#' index. This package then allows to apply such measures on probability
+#' distributions resulting from random walks on tripartite graphs. By defining
+#' an initial distribution at a given level in the graph, a path within the three
+#' levels, and eventually a conditional step, the probability of the walker's
+#' position within the final level is then computed, thus providing a particular
+#' instance of diversity index.
+#'
+#' This package has been developed by researchers of the Complex Networks team,
+#' (http://www.complexnetworks.fr/) within the Computer Science Laboratory of Paris 6
+#' (https://www.lip6.fr/), for the AlgoDiv project (http://algodiv.huma-num.fr/),
+#' founded by the French National Agency of Research
+#' (http://www.agence-nationale-recherche.fr/) under grant ANR-15-CE38-0001.
+#'
+#' Contact: Robin Lamarche-Perrin <Robin.Lamarche-Perrin@lip6.fr>
+#' 
+#' See also my webpage: https://www-complexnetworks.lip6.fr/~lamarche/
+#' 
+#' List of main collaborators:
+#' \itemize{
+#' \item Lionel Tabourier
+#' \item Fabien Tarissan
+#' \item Rapha\"el Fournier S'niehotta
+#' \item R\'emy Cazabet
+#' }
+#' 
+#' Copyright \copyright 2017 Robin Lamarche-Perrin
+#' 
+#' \code{triversity} is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+#' 
+#' 
+#' @docType package
+#' @name triversity
+NULL
+
 distribution_precision <- 1e-5
 
-#' Load a tripartite graph
+#' @title Get a properly-structured tripartite graph from raw data.
+#' 
+#' @description
+#' \code{get_tripartite} returns a properly-structured tripartite graph
+#' from a file or from a dataframe. The structure of the input data and
+#' of the resultung data structure is detailed below.
 #'
-#' @param filename The file containing the tripartite graph
-#' @param data A data.frame containing the tripartite graph
-#' @return A tripartite graph
+#' @param filename The path to the file containing raw data to build the tripartite graph.
+#'
+#' This input file should have
+#' at least four columns, separated by spaces. Each row describe a link between
+#' two nodes belonging to two different levels of the tripartite graph.
+#' The first column indicates the level of the first node (any integer among
+#' \code{1}, \code{2}, or \code{3}) and the
+#' second column indicates its name (any character string). Similarly, the third
+#' and fourth columns indicate the level and the name of the second node.
+#' A fifth column can be added to indicate the eventual weights of the links
+#' (any integer or float value).
+#' 
+#' @param data A \code{data.frame} containing the raw data to build the tripartite graph.
+#'
+#' This \code{data.frame} should have the same structure than the one described above
+#' when using an input file: four columns indicating (in the same order) the
+#' levels and the names of the two nodes constituting the link, and an optional
+#' fifth column fot its weight.
+#' 
+#' @return A properly-structured tripartite graph that can be used by the other functions
+#' of the \code{triversity} package.
+#' 
+#' The resulting data structure describe the different levels of the tripartite
+#' graph, as well as its transition probabilities (encoded as sparse float matrices)
+#' each following a given paths from one level to another. These transition matrices
+#' are then used by functions such as \code{\link{get_distribution_from_path}} to
+#' compute a distribution from a given path traveling through the different levels
+#' of the graph.
+#'
+#' Once the \code{value} returned by \code{get_tripartite}:
+#' \itemize{
+#' \item \code{value$nodes} is a list of vectors contraining the names of the nodes
+#' constituting the three levels of the tripartite graph
+#' (resp. \code{value$nodes$level1}, \code{value$nodes$level2}, and \code{value$nodes$level3}).
+#' \item \code{value$transitions} is a \code{data.tree} which nodes each contains a
+#' transition matrix. For example, \code{value$transitions$level1$level2$mat} is the
+#' transition matrix from level 1 to level 2.
+#' }
 #' 
 #' @export
 get_tripartite <- function (filename=NULL, data=NULL)
@@ -93,11 +174,19 @@ get_tripartite <- function (filename=NULL, data=NULL)
 
 
 
-#' Get a probability transition matrix from a path in the tripartite graph
+#' @title Get the probability transition matrix corresponding to a path
+#' in a tripartite graph.
 #'
-#' @param path The path to follow to compute the transition matrix
-#' @return The resulting transition matrix
+#' @param tripartite A tripartite graph obtained by \code{\link{get_tripartite}}.
+#' @param path The path to follow in the graph to compute the transition matrix.
+#' @return The resulting transition matrix, that is a matrix of floats which rows sum to one.
 #'
+#' @details Note that the tripartite graph structure implemented in this package
+#' store in memory any computed transition matrix to avoid redundant computation
+#' in the future. Hence, the first execution of \code{get_transition_from_path} (or
+#' any other function that is built on it), can be much slower than latter calls.
+#' The transition matrices are stored in a \code{data.tree} (see \code{tripartite$transitions}).
+#' 
 #' @export
 get_transition_from_path <- function (tripartite, path)
 {
@@ -127,13 +216,18 @@ get_transition_from_path <- function (tripartite, path)
 }
 
 
-#' Get a probability distribution from a path in the tripartite graph
+#' @title Get the probability distribution corresponding to a path in the tripartite graph
 #'
-#' @param path The path to follow to compute the distribution
-#' @return The resulting probability distribution
+#' @param tripartite A tripartite graph obtained by the \code{\link{get_tripartite}}.
+#' @param path The path to follow in the graph to compute the distribution.
+#' @param initial_distribution A vector of floats describing the initial distribution to
+#' start with at the first level of the path. It should sum to 1 and contains as many values
+#' as there are nodes in the graph's level specified by the first step of the path.
+#' @param initial_node The name of a node in the first level of the path.
+#' @return The resulting probability distribution, that is a vector of floats which sum to 1.
 #'
 #' @export
-get_distribution_from_path <- function (tripartite, path, initial_node=NULL, initial_distribution=NULL)
+get_distribution_from_path <- function (tripartite, path, initial_distribution=NULL, initial_node=NULL)
 {
     strpath <- paste ('level', path, sep='')
 
@@ -180,10 +274,15 @@ get_distribution_from_path <- function (tripartite, path, initial_node=NULL, ini
 }
 
 
-#' Get the diversity associated to a probability distribution
+#' @title Get the diversity value associated to a probability distribution.
 #'
-#' @param distribution The probability distribution to measure
-#' @return The diversity of the input distribution
+#' @param distribution A vector of floats describing the probability distribution to measure.
+#' @param order A vector of positive floats (possibly including \code{Inf}) describing the
+#' orders of the diversity measures to be computed.
+#' @param measure A vector of strings giving the names of the diversity measures to compute.
+#' The following possible values are \code{'richness'}, \code{'entropy'}, \code{'herfindahl'},
+#' and \code{'bergerparker'}.
+#' @return A vector containing the diversity values of the input distribution.
 #'
 #' @export
 get_diversity_from_distribution <- function (distribution, order=NULL, measure=NULL)
@@ -229,11 +328,16 @@ get_diversity_from_distribution <- function (distribution, order=NULL, measure=N
 }
 
 
-#' Get the conditional diversity associated to a probability distribution and a transition matrix
+#' @title Get the conditional diversity values associated to a probability distribution and a transition matrix.
 #'
-#' @param distribution The probability distribution to measure
-#' @param distribution The probability transition matrix to use
-#' @return The diversity of the input distribution
+#' @param distribution The probability distribution to measure.
+#' @param transition The probability transition matrix to use.
+#' @param order A vector of positive floats (possibly including \code{Inf}) describing the
+#' orders of the diversity measures to be computed.
+#' @param measure A vector of strings giving the names of the diversity measures to compute.
+#' The following possible values are \code{'richness'}, \code{'entropy'}, \code{'herfindahl'},
+#' and \code{'bergerparker'}.
+#' @return The diversity of the input distribution.
 #'
 #' @export
 get_conditional_diversity_from_distribution <- function (distribution, transition, order=NULL, measure=NULL)
@@ -285,17 +389,29 @@ get_conditional_diversity_from_distribution <- function (distribution, transitio
 }
 
 
-#' Get the diversity associated to the distribution obtained through a path in the loaded tripartite graph
+#' @title Get diversity values associated to the distribution obtained through a path in a tripartite graph.
 #'
+#' @param tripartite A tripartite graph obtained by the \code{\link{get_tripartite}}.
 #' @param path The path to follow to build the probability distribution
+#' @param conditional_path A vector of integers (among \code{1}, \code{2}, \code{3}) giving
+#' an eventual path to follow before computing and aggregating the diversity measures.
+#' @param initial_distribution A vector of floats describing the initial distribution to
+#' start with at the first level of the path. It should sum to 1 and contains as many values
+#' as there are nodes in the graph's level specified by the first step of the path.
+#' @param initial_node The name of a node in the first level of the path.
+#' @param order A vector of positive floats (possibly including \code{Inf}) describing the
+#' orders of the diversity measures to be computed.
+#' @param measure A vector of strings giving the names of the diversity measures to compute.
+#' The following possible values are \code{'richness'}, \code{'entropy'}, \code{'herfindahl'},
+#' and \code{'bergerparker'}.
 #' @return The diversity of the resulting probability distribution
 #'
 #' @export
 get_diversity_from_path <- function (tripartite,
                                      path,
                                      conditional_path=NULL,
-                                     initial_node=NULL,
                                      initial_distribution=NULL,
+                                     initial_node=NULL,
                                      order=NULL,
                                      measure=NULL)
 {

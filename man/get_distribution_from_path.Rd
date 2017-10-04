@@ -2,17 +2,22 @@
 % Please edit documentation in R/triversity.R
 \name{get_distribution_from_path}
 \alias{get_distribution_from_path}
-\title{Get a probability distribution from a path in the tripartite graph}
+\title{Get the probability distribution corresponding to a path in the tripartite graph}
 \usage{
-get_distribution_from_path(tripartite, path, initial_node = NULL,
-  initial_distribution = NULL)
+get_distribution_from_path(tripartite, path, initial_distribution = NULL,
+  initial_node = NULL)
 }
 \arguments{
-\item{path}{The path to follow to compute the distribution}
+\item{tripartite}{A tripartite graph obtained by the \code{\link{get_tripartite}}.}
+
+\item{path}{The path to follow in the graph to compute the distribution.}
+
+\item{initial_distribution}{A vector of floats describing the initial distribution to
+start with at the first level of the path. It should sum to 1 and contains as many values
+as there are nodes in the graph's level specified by the first step of the path.}
+
+\item{initial_node}{The name of a node in the first level of the path.}
 }
 \value{
-The resulting probability distribution
-}
-\description{
-Get a probability distribution from a path in the tripartite graph
+The resulting probability distribution, that is a vector of floats which sum to 1.
 }

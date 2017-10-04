@@ -2,19 +2,23 @@
 % Please edit documentation in R/triversity.R
 \name{get_conditional_diversity_from_distribution}
 \alias{get_conditional_diversity_from_distribution}
-\title{Get the conditional diversity associated to a probability distribution and a transition matrix}
+\title{Get the conditional diversity values associated to a probability distribution and a transition matrix.}
 \usage{
 get_conditional_diversity_from_distribution(distribution, transition,
   order = NULL, measure = NULL)
 }
 \arguments{
-\item{distribution}{The probability distribution to measure}
+\item{distribution}{The probability distribution to measure.}
 
-\item{distribution}{The probability transition matrix to use}
+\item{transition}{The probability transition matrix to use.}
+
+\item{order}{A vector of positive floats (possibly including \code{Inf}) describing the
+orders of the diversity measures to be computed.}
+
+\item{measure}{A vector of strings giving the names of the diversity measures to compute.
+The following possible values are \code{'richness'}, \code{'entropy'}, \code{'herfindahl'},
+and \code{'bergerparker'}.}
 }
 \value{
-The diversity of the input distribution
-}
-\description{
-Get the conditional diversity associated to a probability distribution and a transition matrix
+The diversity of the input distribution.
 }

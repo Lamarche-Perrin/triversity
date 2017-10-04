@@ -2,16 +2,20 @@
 % Please edit documentation in R/triversity.R
 \name{get_diversity_from_distribution}
 \alias{get_diversity_from_distribution}
-\title{Get the diversity associated to a probability distribution}
+\title{Get the diversity value associated to a probability distribution.}
 \usage{
 get_diversity_from_distribution(distribution, order = NULL, measure = NULL)
 }
 \arguments{
-\item{distribution}{The probability distribution to measure}
+\item{distribution}{A vector of floats describing the probability distribution to measure.}
+
+\item{order}{A vector of positive floats (possibly including \code{Inf}) describing the
+orders of the diversity measures to be computed.}
+
+\item{measure}{A vector of strings giving the names of the diversity measures to compute.
+The following possible values are \code{'richness'}, \code{'entropy'}, \code{'herfindahl'},
+and \code{'bergerparker'}.}
 }
 \value{
-The diversity of the input distribution
-}
-\description{
-Get the diversity associated to a probability distribution
+A vector containing the diversity values of the input distribution.
 }

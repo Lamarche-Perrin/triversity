@@ -2,18 +2,33 @@
 % Please edit documentation in R/triversity.R
 \name{get_diversity_from_path}
 \alias{get_diversity_from_path}
-\title{Get the diversity associated to the distribution obtained through a path in the loaded tripartite graph}
+\title{Get diversity values associated to the distribution obtained through a path in a tripartite graph.}
 \usage{
 get_diversity_from_path(tripartite, path, conditional_path = NULL,
-  initial_node = NULL, initial_distribution = NULL, order = NULL,
+  initial_distribution = NULL, initial_node = NULL, order = NULL,
   measure = NULL)
 }
 \arguments{
+\item{tripartite}{A tripartite graph obtained by the \code{\link{get_tripartite}}.}
+
 \item{path}{The path to follow to build the probability distribution}
+
+\item{conditional_path}{A vector of integers (among \code{1}, \code{2}, \code{3}) giving
+an eventual path to follow before computing and aggregating the diversity measures.}
+
+\item{initial_distribution}{A vector of floats describing the initial distribution to
+start with at the first level of the path. It should sum to 1 and contains as many values
+as there are nodes in the graph's level specified by the first step of the path.}
+
+\item{initial_node}{The name of a node in the first level of the path.}
+
+\item{order}{A vector of positive floats (possibly including \code{Inf}) describing the
+orders of the diversity measures to be computed.}
+
+\item{measure}{A vector of strings giving the names of the diversity measures to compute.
+The following possible values are \code{'richness'}, \code{'entropy'}, \code{'herfindahl'},
+and \code{'bergerparker'}.}
 }
 \value{
 The diversity of the resulting probability distribution
-}
-\description{
-Get the diversity associated to the distribution obtained through a path in the loaded tripartite graph
 }

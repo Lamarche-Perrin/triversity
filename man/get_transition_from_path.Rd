@@ -2,16 +2,23 @@
 % Please edit documentation in R/triversity.R
 \name{get_transition_from_path}
 \alias{get_transition_from_path}
-\title{Get a probability transition matrix from a path in the tripartite graph}
+\title{Get the probability transition matrix corresponding to a path
+in a tripartite graph.}
 \usage{
 get_transition_from_path(tripartite, path)
 }
 \arguments{
-\item{path}{The path to follow to compute the transition matrix}
+\item{tripartite}{A tripartite graph obtained by \code{\link{get_tripartite}}.}
+
+\item{path}{The path to follow in the graph to compute the transition matrix.}
 }
 \value{
-The resulting transition matrix
+The resulting transition matrix, that is a matrix of floats which rows sum to one.
 }
-\description{
-Get a probability transition matrix from a path in the tripartite graph
+\details{
+Note that the tripartite graph structure implemented in this package
+store in memory any computed transition matrix to avoid redundant computation
+in the future. Hence, the first execution of \code{get_transition_from_path} (or
+any other function that is built on it), can be much slower than latter calls.
+The transition matrices are stored in a \code{data.tree} (see \code{tripartite$transitions}).
 }
