@@ -9,6 +9,4 @@ Depends: R (>= 3.2.3), Matrix, data.tree
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 RoxygenNote: 6.0.1
-Suggests: knitr,
-    rmarkdown
-VignetteBuilder: knitr
+
