@@ -2,53 +2,70 @@
 % Please edit documentation in R/triversity.R
 \name{get_tripartite}
 \alias{get_tripartite}
-\title{Get a properly-structured tripartite graph from raw data.}
+\title{Build a properly-structured tripartite graph from raw data.}
 \usage{
 get_tripartite(filename = NULL, data = NULL)
 }
 \arguments{
-\item{filename}{The path to the file containing raw data to build the tripartite graph.
+\item{filename}{A string giving the path to the file containing the raw data.
 
-This input file should have
-at least four columns, separated by spaces. Each row describe a link between
+The input file should contain
+at least four columns, separated by spaces. Each row gives a link between
 two nodes belonging to two different levels of the tripartite graph.
-The first column indicates the level of the first node (any integer among
-\code{1}, \code{2}, or \code{3}) and the
-second column indicates its name (any character string). Similarly, the third
-and fourth columns indicate the level and the name of the second node.
-A fifth column can be added to indicate the eventual weights of the links
-(any integer or float value).}
+The first column gives the level of the first node (any integer in
+\{\code{1}, \code{2}, \code{3}\}) and the
+second column gives its name (any character string). Similarly, the third
+and fourth columns give the level and the name of the second node.
+Note that no link is allowed between level \code{1} and level \code{3}.
+The file can eventually contain a fifth column giving the weights of the links
+(any positive integer or float value).}
 
-\item{data}{A \code{data.frame} containing the raw data to build the tripartite graph.
+\item{data}{A \code{data.frame} containing the raw data.
 
 This \code{data.frame} should have the same structure than the one described above
-when using an input file: four columns indicating (in the same order) the
+for the case of an input file: four columns indicating the
 levels and the names of the two nodes constituting the link, and an optional
-fifth column fot its weight.}
+fifth column for its weight. At least \code{filename} or \code{data} should be
+specified, but not both at the same time.}
 }
 \value{
 A properly-structured tripartite graph that can be used by the other functions
 of the \code{triversity} package.
 
-The resulting data structure describe the different levels of the tripartite
-graph, as well as its transition probabilities (encoded as sparse float matrices)
-each following a given paths from one level to another. These transition matrices
+The resulting object encodes the names of the nodes at the three levels of the tripartite
+graph, as well as the transition matrices of random walks following different paths
+between levels (encoded as sparse matrices of floats in [\code{0},\code{1}], with all
+rows summing to \code{1}). These transition matrices
 are then used by functions such as \code{\link{get_distribution_from_path}} to
-compute a distribution from a given path traveling through the different levels
-of the graph.
+compute the probability distributions of such random walks, or such as
+\code{\link{get_diversity_from_path}} to compute the diversity of these distributions.
 
-Once the \code{value} returned by \code{get_tripartite}:
+Assuming the object returned by \code{get_tripartite} is stored in the \code{tripartite}
+variable, then:
 \itemize{
-\item \code{value$nodes} is a list of vectors contraining the names of the nodes
+\item \code{tripartite$nodes} is a list of string vectors giving the names of the nodes
 constituting the three levels of the tripartite graph
-(resp. \code{value$nodes$level1}, \code{value$nodes$level2}, and \code{value$nodes$level3}).
-\item \code{value$transitions} is a \code{data.tree} which nodes each contains a
-transition matrix. For example, \code{value$transitions$level1$level2$mat} is the
+(resp. \code{tripartite$nodes$level1}, \code{tripartite$nodes$level2}, and
+\code{tripartite$nodes$level3}).
+\item \code{tripartite$transitions} is a \code{data.tree} whose nodes each contains the
+transition matrix of the corresponding random walk. For example,
+\code{tripartite$transitions$level1$level2$mat} gives the
 transition matrix from level 1 to level 2.
 }
 }
 \description{
-\code{get_tripartite} returns a properly-structured tripartite graph
-from a file or from a dataframe. The structure of the input data and
-of the resultung data structure is detailed below.
+\code{get_tripartite} builds a properly-structured tripartite graph
+from a file or from a \code{data.frame} containing raw data. This object can then
+be used by the other functions of this package. The structure
+of the input data and of the resulting structure is detailed below.
+}
+\examples{
+data (tripartite_example)
+tripartite <- get_tripartite (data=tripartite_example)
+
+tripartite$nodes$level1
+tripartite$nodes$level2
+tripartite$level1$level2$mat
+tripartite
+
 }

@@ -2,23 +2,39 @@
 % Please edit documentation in R/triversity.R
 \name{get_transition_from_path}
 \alias{get_transition_from_path}
-\title{Get the probability transition matrix corresponding to a path
-in a tripartite graph.}
+\title{Compute the transition matrix of a random walk following a path between the levels of a
+tripartite graph.}
 \usage{
 get_transition_from_path(tripartite, path)
 }
 \arguments{
-\item{tripartite}{A tripartite graph obtained by \code{\link{get_tripartite}}.}
+\item{tripartite}{A tripartite graph obtained by calling the \code{\link{get_tripartite}} function.}
 
-\item{path}{The path to follow in the graph to compute the transition matrix.}
+\item{path}{A vector of integers in \{\code{1}, \code{2}, \code{3}\} giving the path of the random
+walk between the different levels of the input \code{tripartite} graph. This path can be as long
+as wanted. Two successive levels should always be adjacent, that is the random walk cannot go from
+level \code{1} to level \code{3} (or conversely) without first going through level \code{2}.}
 }
 \value{
-The resulting transition matrix, that is a matrix of floats which rows sum to one.
+A matrix of floats in [\code{0},\code{1}], with all lines summing to \code{1},
+giving the transition matrix of the random walk following the input \code{path}.
+}
+\description{
+\code{get_transition_from_path} computes the transition matrix of a random walk following a
+\code{path} between the different levels of the input \code{tripartite} graph.
 }
 \details{
 Note that the tripartite graph structure implemented in this package
-store in memory any computed transition matrix to avoid redundant computation
-in the future. Hence, the first execution of \code{get_transition_from_path} (or
-any other function that is built on it), can be much slower than latter calls.
-The transition matrices are stored in a \code{data.tree} (see \code{tripartite$transitions}).
+stores in memory any computed transition matrix to avoid redundant computation
+in the future. Hence, the first execution of \code{get_transition_from_path}, or of
+any other function that builds on it, can be much slower than latter calls.
+The transition matrices are stored within a \code{data.tree} in the input \code{tripartite}
+variable (see \code{tripartite$transitions}).
+}
+\examples{
+data (tripartite_example)
+tripartite <- get_tripartite (data=tripartite_example)
+
+get_transition_from_path (tripartite, c(2,1,2,3))
+
 }
