@@ -150,7 +150,7 @@ get_tripartite <- function (filename=NULL, data=NULL)
     if (!is.null (filename) && !is.null (data)) { stop ("'filename' and 'data' cannot be both specified at the same time") }
 
     ## LOAD DATA
-    if (!is.null (filename)) { data <- read.table (filename, stringsAsFactors=FALSE) }
+    if (!is.null (filename)) { data <- utils::read.table (filename, stringsAsFactors=FALSE) }
 
     if (length(colnames(data)) < 4) { stop ("input data should have at least 4 columns") }
     
