@@ -9,7 +9,7 @@
 \code{triversity} is an R package for the computation of diversity measures
 on tripartite graphs. First, it implements a parametrized family of such diversity
 measures which apply on probability distributions. Sometimes called "True Diversity",
-this family contains famous measures such as the Richness, the Shannon entropy, the
+this family contains famous measures such as the richness, the Shannon entropy, the
 Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows
 to apply these measures on probability distributions resulting from random walks between
 the levels of tripartite graphs. By defining an initial distribution at a given level of

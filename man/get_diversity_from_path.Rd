@@ -62,7 +62,7 @@ the links of the graph between the different levels according to the input \code
 stops at the last specified level. The implemented diversity measures all belong to the
 parametrized family of "True Diversity" measures. They can either be specified by their diversity
 \code{order} in [\code{0},\code{Inf}[ or by their \code{measure} name when it corresponds to
-classical instances such as the Richness, the Shannon entropy, the Herfindahl-Hirschman index,
+classical instances such as the richness, the Shannon entropy, the Herfindahl-Hirschman index,
 or the Berger-Parker index.
 }
 \examples{

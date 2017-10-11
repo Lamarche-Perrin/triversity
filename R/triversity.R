@@ -28,7 +28,7 @@
 #' \code{triversity} is an R package for the computation of diversity measures
 #' on tripartite graphs. First, it implements a parametrized family of such diversity
 #' measures which apply on probability distributions. Sometimes called "True Diversity",
-#' this family contains famous measures such as the Richness, the Shannon entropy, the
+#' this family contains famous measures such as the richness, the Shannon entropy, the
 #' Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows
 #' to apply these measures on probability distributions resulting from random walks between
 #' the levels of tripartite graphs. By defining an initial distribution at a given level of
@@ -359,7 +359,7 @@ get_distribution_from_path <- function (tripartite, path, initial_distribution=N
 #' probability \code{distribution}. The implemented diversity measures all belong to the
 #' parametrized family of "True Diversity" measures. They can either be specified by their
 #' diversity \code{order} in [\code{0},\code{Inf}[ or by their \code{measure} name when it
-#' corresponds to classical instances such as the Richness, the Shannon entropy, the
+#' corresponds to classical instances such as the richness, the Shannon entropy, the
 #' Herfindahl-Hirschman index, or the Berger-Parker index.
 #' 
 #' @param distribution A vector of floats in [\code{0},\code{1}] and summing to \code{1} giving
@@ -531,7 +531,7 @@ get_conditional_diversity_from_transition <- function (transition, distribution=
 #' stops at the last specified level. The implemented diversity measures all belong to the
 #' parametrized family of "True Diversity" measures. They can either be specified by their diversity
 #' \code{order} in [\code{0},\code{Inf}[ or by their \code{measure} name when it corresponds to
-#' classical instances such as the Richness, the Shannon entropy, the Herfindahl-Hirschman index,
+#' classical instances such as the richness, the Shannon entropy, the Herfindahl-Hirschman index,
 #' or the Berger-Parker index.
 #'
 #' @param tripartite A tripartite graph obtained by calling the \code{\link{get_tripartite}} function.
