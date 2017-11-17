@@ -4,18 +4,18 @@
 \name{triversity}
 \alias{triversity}
 \alias{triversity-package}
-\title{Compute diversity measures on tripartite graphs.}
+\title{Compute diversity measures on multipartite graphs.}
 \description{
 \code{triversity} is an R package for the computation of diversity measures
-on tripartite graphs. First, it implements a parametrized family of such diversity
+on multipartite graphs. First, it implements a parametrized family of such diversity
 measures which apply on probability distributions. Sometimes called "True Diversity",
 this family contains famous measures such as the richness, the Shannon entropy, the
 Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows
 to apply these measures on probability distributions resulting from random walks between
-the levels of tripartite graphs. By defining an initial distribution at a given level of
-the graph and a path to follow between the three levels, the probability of the walker's
-position within the final level is then computed, thus providing a particular instance of
-diversity to measure.
+the parts of multipartite graphs. By defining an initial distribution on a given part
+of the graph and a path to follow between the different parts, the probability of the
+walker's position within the final part is then computed, thus providing a particular
+instance of diversity to measure.
 
 This package has been developed by researchers of the Complex Networks team,
 located within the Computer Science Laboratory of Paris 6 (LIP6),
@@ -49,5 +49,11 @@ List of main collaborators:
 
 Copyright 2017 © Robin Lamarche-Perrin
 
-\code{triversity} is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see \url{http://www.gnu.org/licenses/}.
+\code{triversity} is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version. It is distributed
+in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details. You should have received a copy of the GNU General
+Public License along with this program. If not, see \url{http://www.gnu.org/licenses/}.
 }

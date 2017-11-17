@@ -2,115 +2,85 @@
 % Please edit documentation in R/triversity.R
 \name{get_diversity_from_path}
 \alias{get_diversity_from_path}
-\title{Compute the diversity associated to a random walk following a path between the levels
-of a tripartite graph.}
+\title{Compute the diversity associated to a random walk following a path between the
+parts of a multipartite graph.}
 \usage{
-get_diversity_from_path(tripartite, path, conditional_path = NULL,
-  initial_distribution = NULL, initial_node = NULL, order = NULL,
-  measure = NULL)
+get_diversity_from_path(graph, path, type = "individual",
+  mean_distribution = NULL, initial_distribution = NULL,
+  initial_node = NULL, order = NULL, measure = NULL)
 }
 \arguments{
-\item{tripartite}{A tripartite graph obtained by calling the \code{\link{get_tripartite}} function.}
+\item{graph}{A multipartite graph obtained by calling the \code{\link{get_multipartite}}
+function.}
 
-\item{path}{A vector of integers in \{\code{1}, \code{2}, \code{3}\} giving the path of the random
-walk between the different levels of the input \code{tripartite} graph. This path can be as long
-as wanted. Two successive levels should always be adjacent, that is the random walk cannot go from
-level \code{1} to level \code{3} (or conversely) without first going through level \code{2}.}
+\item{path}{A vector of character strings giving the path that the random walk should
+follow between the different parts of the input multipartite \code{graph}. This path can
+be as long as wanted, with eventual cycles, and each string it contains should refer to a
+label in \code{graph$parts}.}
 
-\item{conditional_path}{A vector of integers in \{\code{1}, \code{2}, \code{3}\} eventually
-giving another path to compute conditional diversity values instead of regular diversity
-values. When specified, this conditional
-path is first used to initiate the random walk. The resulting probability distribution is then
-used to weight the individual diversity values obtained on the input \code{path} when computing
-their geometric means (see
-\code{\link{get_conditional_diversity_from_transition}}). This path can be as long
-as wanted. The last level of the conditional path should be the same as the first level of the
-input \code{path}. Moreover, two successive levels should always be adjacent, that is the random
-walk cannot go from
-level \code{1} to level \code{3} (or conversely) without first going through level \code{2}.}
+\item{type}{Either \code{'individual'}, to separately compute all individual diversities,
+\code{'mean'}, to compute their geometric mean, or \code{'collective'}, to compute the
+overall diversity.}
 
-\item{initial_distribution}{A vector of floats in [\code{0},\code{1}] and summing to
-\code{1} giving the probability
-distribution to start with at the first level of the input \code{path}, or at the first level
-of the input \code{conditional_path} if specified. It should hence
-contain as many values as there are nodes in the corresponding level. If not specified, this
-distribution is assumed uniform.}
+\item{mean_distribution}{(optional, only when \code{type == 'mean'}) A vector of floats
+in [\code{0},\code{1}] and summing to \code{1} giving the probability distribution that
+is used to weight the diversity values when computing their geometric means. It should
+hence contain as many values as there are rows in the input \code{transition}. If not
+specified, this distribution is assumed uniform.}
 
-\item{initial_node}{A string giving the name of a node in the first level of the input
-\code{path}, or at the first level of the input \code{conditional_path} if specified.
-This node is then considered to have probability one, thus being equivalent to
-specifying an \code{initial_distribution} with only zeros except for one node. If not specified,
-no such node is defined and the initial distribution is assumed uniform.}
+\item{initial_distribution}{(optional, only when \code{type == 'collective'})
+A vector of floats in [\code{0},\code{1}] and
+summing to \code{1} giving the probability distribution to start with at the first part
+of the input \code{path}. It should hence contain as many values as there are nodes in the
+corresponding part. If not specified, this distribution is assumed uniform.}
 
-\item{order}{A vector of positive floats (possibly including \code{Inf}) giving the
-orders of the diversity measures to be computed. If neither \code{order} nor \code{measure} is
+\item{initial_node}{(optional, only when \code{type == 'collective'})
+A character string giving the label of a node in the first
+part of the input \code{path}. This node is then considered to have probability one, thus
+being equivalent to specifying an \code{initial_distribution} with only zeros except for
+one node. If not specified, no such node is defined and the initial distribution is then
+assumed uniform.}
+
+\item{order}{A vector of positive floats (possibly including \code{Inf}) giving the orders
+of the diversity measures to be computed. If neither \code{order} nor \code{measure} is
 specified, a predefined list of 8 diversity measures is computed.}
 
 \item{measure}{A vector of strings giving the names of the diversity measures to compute.
-Possible values are \code{richness}, \code{entropy}, \code{herfindahl},
-and \code{bergerparker}.}
+Possible values are \code{richness}, \code{entropy}, \code{herfindahl}, and
+\code{bergerparker}.}
 }
 \value{
-A vector of positive floats giving the diversity values (or conditional diversity values)
-of the random walk following the input \code{path}.
+A matrix (or a vector) of positive floats giving the individual diversity values 
+of the random walks following the input \code{path} (or their mean, or the collective
+diversity).
 }
 \description{
-\code{get_diversity_from_path} computes diversity values of the probability distribution of a
-random walk following a \code{path} between the different levels of the input \code{tripartite}
-graph. It starts at a given level with an initial probability distribution, then randomly follows
-the links of the graph between the different levels according to the input \code{path}, then
-stops at the last specified level. The implemented diversity measures all belong to the
-parametrized family of "True Diversity" measures. They can either be specified by their diversity
-\code{order} in [\code{0},\code{Inf}[ or by their \code{measure} name when it corresponds to
-classical instances such as the richness, the Shannon entropy, the Herfindahl-Hirschman index,
+\code{get_diversity_from_path} computes diversity values of the probability distribution
+of a random walk following a \code{path} between the different parts of the input
+multipartite \code{graph}. It starts at a given part with an initial probability
+distribution, then randomly follows the links of the graph between the different parts
+according to the input \code{path}, then stops at the last specified part. The
+implemented diversity measures all belong to the parametrized family of "True Diversity"
+measures. They can either be specified by their diversity \code{order} in
+[\code{0},\code{Inf}[ or by their \code{measure} name when it corresponds to classical
+instances such as the richness, the Shannon entropy, the Herfindahl-Hirschman index,
 or the Berger-Parker index.
 }
 \examples{
 data (tripartite_example)
-tripartite <- get_tripartite (data=tripartite_example)
+graph <- get_multipartite (data=tripartite_example)
+path <- c(1,2,3)
 
 
-# COMPUTING DIFFERENT DIVERSITY VALUES FOR A GIVEN PATH
+get_diversity_from_path (graph, path, 'individual', measure=c('entropy','herfindahl'))
+get_diversity_from_path (graph, path, 'individual', order=c(0,1,Inf))
 
-# Herfindahl-Hirschman index of nodes in level 3 wrt nodes in level 1
-get_diversity_from_path (tripartite, path=c(1,2,3), measure='herfindahl')
-1 / get_diversity_from_path (tripartite, path=c(1,2,3), order=2)
+# Mean of individual diversities
+get_diversity_from_path (graph, path, 'mean')
+get_diversity_from_path (graph, path, 'mean', mean_distribution=c(1/3,2/3))
 
-# Shannon entropy of nodes in level 3 wrt nodes in level 1
-get_diversity_from_path (tripartite, path=c(1,2,3), measure='entropy')
-log2 (get_diversity_from_path (tripartite, path=c(1,2,3), order=1))
-
-# Some other diversity values of nodes in level 3 wrt nodes in level 1
-get_diversity_from_path (tripartite, path=c(1,2,3), order=c(1,2,Inf),
-                         measure=c('richness','bergerparker'))
-
-# Eight of the main diversity values of nodes in level 3 wrt nodes in level 1
-get_diversity_from_path (tripartite, path=c(1,2,3))
-
-
-# SPECIFYING THE INITIAL DISTRIBUTION
-
-# Diversity of nodes in level 3 wrt nodes in level 1 (with non-uniform weights)
-get_diversity_from_path (tripartite, path=c(1,2,3), initial_distribution=c(0.75,0.25))
-
-# Individual diversity of nodes in level 3 wrt node 'u1' in level 1
-get_diversity_from_path (tripartite, path=c(1,2,3), initial_node='u1')
-get_diversity_from_path (tripartite, path=c(1,2,3), initial_distribution=c(1,0))
-
-
-# COMPUTING THE MEAN OF INDIVIDUAL DIVERSITES
-
-# Mean of individual diversities of nodes in level 3 wrt nodes in level 2 (with
-# uniform weights)
-get_diversity_from_path (tripartite, path=c(2,3), conditional_path=c(2))
-
-# Mean of individual diversities of nodes in level 3 wrt nodes in level 2 (weighted
-# according to the path from level 1 to level 2, with a uniform distribution in level 1)
-get_diversity_from_path (tripartite, path=c(2,3), conditional_path=c(1,2))
-
-# Mean of individual diversities of nodes in level 3 wrt nodes in level 2 (weighted
-# according to the path from level 1 to level 2, with only node 'u1' in level 1)
-get_diversity_from_path (tripartite, path=c(2,3), conditional_path=c(1,2),
-                         initial_node='u1')
+# Collective diversities
+get_diversity_from_path (graph, path, 'collective')
+get_diversity_from_path (graph, path, 'collective', initial_distribution=c(0.75,0.25))
 
 }

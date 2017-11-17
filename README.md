@@ -1,6 +1,6 @@
-# `triversity`: Diversity Measures on Tripartite Graphs
+# `triversity`: Diversity Measures on Multipartite Graphs
 
-`triversity` is an R package for the computation of diversity measures on tripartite graphs. First, it implements a parametrized family of such diversity measures which apply on probability distributions. Sometimes called "True Diversity", this family contains famous measures such as the Richness, the Shannon entropy, the Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows to apply these measures on probability distributions resulting from random walks between the levels of tripartite graphs. By defining an initial distribution at a given level of the graph and a path to follow between the three levels, the probability of the walker's position within the final level is then computed, thus providing a particular instance of diversity to measure.
+`triversity` is an R package for the computation of diversity measures on multipartite graphs. First, it implements a parametrized family of such diversity measures which apply on probability distributions. Sometimes called "True Diversity", this family contains famous measures such as the Richness, the Shannon entropy, the Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows to apply these measures on probability distributions resulting from random walks between the parts of multipartite graphs. By defining an initial distribution on a given part of the graph and a path to follow between the different parts, the probability of the walker's position within the final part is then computed, thus providing a particular instance of diversity to measure.
 
 ### Clone
 ```
@@ -14,7 +14,7 @@ List of main collaborators:
 - [Robin Lamarche-Perrin](https://www-complexnetworks.lip6.fr/~lamarche/)
 - Lionel Tabourier
 - Fabien Tarissan
-- Raphaël Fournier S'niehotta
+- Raphaël Fournier-S'niehotta
 - Rémy Cazabet
 
 ### License

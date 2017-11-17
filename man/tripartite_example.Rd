@@ -9,29 +9,20 @@
 data(tripartite_example)
 }
 \description{
-\code{tripartite_example} is a \code{data.frame} containing raw data
-that encodes a small tripartite graph. It has the proper
-format to be loaded by \code{\link{get_tripartite}}. It contains four columns.
-Each row gives a link between
-two nodes belonging to two different levels of the tripartite graph.
-The first column gives the level of the first node (any integer in
-\{\code{1}, \code{2}, \code{3}\}) and the
-second column gives its name (any character string). Similarly, the third
-and fourth columns give the level and the name of the second node.
-A fifth column could eventually be added to give the weights of the links
+\code{tripartite_example} is a \code{data.frame} containing raw data that encodes a small
+tripartite graph. It has the proper format to be loaded by \code{\link{get_multipartite}}.
+It contains four columns. Each row gives a link between two nodes belonging to two
+different parts of the tripartite graph. The first column gives the label if the part of
+the first node and the second column gives the label of this node (any character string).
+Similarly, the third and fourth columns give the labels of the second part and of the
+second node. A fifth column could eventually be added to give the weights of the links
 (any positive integer or float value).
 }
 \examples{
 data (tripartite_example)
 head (tripartite_example)
 
-# Load the data.frame into a proper data structure
-tripartite <- get_tripartite (data=tripartite_example)
-
-# Get the names of the nodes in the second level of the tripartite graph
-tripartite$nodes$level2
-
-# Get the transition matrix of a random walk going from the level 2 to level 1
-tripartite$transitions$level2$level1$mat
+graph <- get_multipartite (data=tripartite_example)
+graph
 }
 \keyword{datasets}

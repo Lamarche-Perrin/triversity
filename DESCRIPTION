@@ -1,11 +1,11 @@
 Package: triversity
-Title: Diversity Measures on Tripartite Graphs
-Version: 1.0
+Title: Diversity Measures on Multipartite Graphs
+Version: 2.0
 Authors@R: person("Robin", "Lamarche-Perrin", email = "Robin.Lamarche-Perrin@lip6.fr", role = c("aut", "cre"))
 Author: Robin Lamarche-Perrin [aut, cre]
 Maintainer: Robin Lamarche-Perrin <Robin.Lamarche-Perrin@lip6.fr>
-Description: Computing diversity measures on tripartite graphs. This package first implements a parametrized family of such diversity measures which apply on probability distributions. Sometimes called "True Diversity", this family contains famous measures such as the richness, the Shannon entropy, the Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows to apply these measures on probability distributions resulting from random walks between the levels of tripartite graphs. By defining an initial distribution at a given level of the graph and a path to follow between the three levels, the probability of the walker's position within the final level is then computed, thus providing a particular instance of diversity to measure.
-Depends: R (>= 3.2.3), Matrix, data.tree
+Description: Computing diversity measures on multipartite graphs. This package first implements a parametrized family of such diversity measures which apply on probability distributions. Sometimes called "True Diversity", this family contains famous measures such as the richness, the Shannon entropy, the Herfindahl-Hirschman index, and the Berger-Parker index. Second, the package allows to apply these measures on probability distributions resulting from random walks between the parts of multipartite graphs. By defining an initial distribution on a given part of the graph and a path to follow between the different parts, the probability of the walker's position within the final part is then computed, thus providing a particular instance of diversity to measure.
+Depends: R (>= 3.2.3), stats, slam, data.tree
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 RoxygenNote: 6.0.1

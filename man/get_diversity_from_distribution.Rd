@@ -7,16 +7,16 @@
 get_diversity_from_distribution(distribution, order = NULL, measure = NULL)
 }
 \arguments{
-\item{distribution}{A vector of floats in [\code{0},\code{1}] and summing to \code{1} giving
-the probability distribution whose diversity is measured.}
+\item{distribution}{A vector of floats in [\code{0},\code{1}] and summing to \code{1}
+giving the probability distribution whose diversity is measured.}
 
-\item{order}{A vector of positive floats (possibly including \code{Inf}) giving the
-orders of the diversity measures to be computed. If neither \code{order} nor \code{measure} is
+\item{order}{A vector of positive floats (possibly including \code{Inf}) giving the orders
+of the diversity measures to be computed. If neither \code{order} nor \code{measure} is
 specified, a predefined list of 8 diversity measures is computed.}
 
 \item{measure}{A vector of strings giving the names of the diversity measures to compute.
-Possible values are \code{richness}, \code{entropy}, \code{herfindahl},
-and \code{bergerparker}.}
+Possible values are \code{richness}, \code{entropy}, \code{herfindahl}, and
+\code{bergerparker}.}
 }
 \value{
 A vector of positive floats giving the diversity values of the input probability

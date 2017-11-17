@@ -2,39 +2,40 @@
 % Please edit documentation in R/triversity.R
 \name{get_transition_from_path}
 \alias{get_transition_from_path}
-\title{Compute the transition matrix of a random walk following a path between the levels of a
-tripartite graph.}
+\title{Compute the transition matrix of a random walk following a path between the parts
+of a multipartite graph.}
 \usage{
-get_transition_from_path(tripartite, path)
+get_transition_from_path(graph, path)
 }
 \arguments{
-\item{tripartite}{A tripartite graph obtained by calling the \code{\link{get_tripartite}} function.}
+\item{graph}{A multipartite graph obtained by calling the \code{\link{get_multipartite}}
+function.}
 
-\item{path}{A vector of integers in \{\code{1}, \code{2}, \code{3}\} giving the path of the random
-walk between the different levels of the input \code{tripartite} graph. This path can be as long
-as wanted. Two successive levels should always be adjacent, that is the random walk cannot go from
-level \code{1} to level \code{3} (or conversely) without first going through level \code{2}.}
+\item{path}{A vector of character strings giving the path that the random walk should
+follow between the different parts of the input multipartite \code{graph}. This path can
+be as long as wanted, with eventual cycles, and each string it contains should refer to a
+label in \code{graph$parts}.}
 }
 \value{
 A matrix of floats in [\code{0},\code{1}], with all lines summing to \code{1},
 giving the transition matrix of the random walk following the input \code{path}.
 }
 \description{
-\code{get_transition_from_path} computes the transition matrix of a random walk following a
-\code{path} between the different levels of the input \code{tripartite} graph.
+\code{get_transition_from_path} computes the transition matrix of a random walk following
+a \code{path} between the different parts of the input multipartite \code{graph}.
 }
 \details{
-Note that the tripartite graph structure implemented in this package
+Note that the multipartite graph structure implemented in this package
 stores in memory any computed transition matrix to avoid redundant computation
-in the future. Hence, the first execution of \code{get_transition_from_path}, or of
-any other function that builds on it, can be much slower than latter calls.
-The transition matrices are stored within a \code{data.tree} in the input \code{tripartite}
-variable (see \code{tripartite$transitions}).
+in the future. Hence, the latter execution of \code{get_transition_from_path}, or of
+any other function that builds on it, can be much faster than the first call.
+The transition matrices are stored within a \code{data.tree} in the input
+\code{graph} variable (see \code{graph$edges}).
 }
 \examples{
 data (tripartite_example)
-tripartite <- get_tripartite (data=tripartite_example)
+graph <- get_multipartite (data=tripartite_example)
 
-get_transition_from_path (tripartite, c(2,1,2,3))
+as.matrix (get_transition_from_path (graph, path=c(2,1,2,3)))
 
 }
