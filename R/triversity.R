@@ -566,6 +566,7 @@ get_diversity_from_transition <- function (transition, type='individual', mean_d
     }
 
     if (!is.null(mean_distribution)) {
+        mean_distribution <- as.vector (mean_distribution)
         if (length (mean_distribution) != transition$nrow) { stop ("'mean distribution' has not the proper length") }
         if (abs (sum (mean_distribution) - 1) > triversity.env$distribution_precision) { stop ("'mean distribution' does not sum to 1") }
     }
@@ -760,6 +761,8 @@ get_diversity_from_path <- function (graph,
     if (type == 'collective' && ! is.null (initial_node)) { stop ("'initial node' cannot be used when computing collective diversities") }
     if (type == 'collective' && ! is.null (mean_distribution)) { stop ("'mean distribution' cannot be used when computing collective diversities") }
 
+    if (type == 'individual' && !is.null (initial_node)) { type <- 'collective' }
+    
     diversity <- NULL
     if (type == 'individual')
     {
@@ -780,7 +783,7 @@ get_diversity_from_path <- function (graph,
     }
 
     else if (type == 'collective') {
-        distribution <- get_distribution_from_path (graph, path, initial_distribution=initial_distribution)
+        distribution <- get_distribution_from_path (graph, path, initial_distribution=initial_distribution, initial_node=initial_node)
         if (is.null (distribution)) { return (NULL) }
         
         diversity <- get_diversity_from_distribution (distribution, order=order, measure=measure)
