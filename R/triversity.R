@@ -257,7 +257,90 @@ get_multipartite <- function (filename=NULL, data=NULL)
     return (graph)
 }
 
+#' @title Build a properly-structured multipartite graph from a \code{data.frame} or a list of
+#' \code{data.frame}s.
+#'
+#' @description
+#' \code{get_multipartite_from_df} is a wrapper function that properly formats a a
+#' \code{data.frame} or a list of \code{data.frame}s, then calls \code{get_multipartite}.
+#'
+#' @param data A a \code{data.frame} or a list of \code{data.frame}s containing the raw data.
+#'
+#' If it is a single \code{data.frame}, it must contain all the variables listed in colnames.
+#'
+#' If it is a list of \code{data.frame}s, each one must contain a couple of adjacent level
+#' variables: the first \code{data;frame} contains levels 1 and 2, the second level 2 and 3,
+#' etc.
+#'
+#' @param colnames A character vector containing the name of the variables for each level of
+#' the graph, in order (n^th name is level n).
+#'
+#' @param weights A logical vector of length equal to number of levels minus one. Specifies
+#' whether edges should be weighted (TRUE) or not (FALSE). Weights are computed with the number
+#' of rows. By default, the edges between level 1 and level 2 nodes are weighted, while the
+#' rest are not.
+#'
+#' @return A properly-structured multipartite graph that can be used by the other functions
+#' of the \code{triversity} package. See \code{\link{get_multipartite}} for details.
+#'
+#' @seealso \code{\link{get_multipartite}}.
+#'
+#' @examples
+#' ex_data <- data.frame(lev1 = c(1, 1, 2, 2, 3, 3),
+#'                       lev2 = c("a", "b", "b", "c", "a", "c"),
+#'                       lev3 = c("x", "x", "x", "y", "x", "y"))
+#'
+#' graph <- get_multipartite_from_df(data = ex_data,
+#'                                   colnames = c("lev1", "lev2", "lev3"))
+#'
+#' ex_data <- data.frame(lev1 = c(1, 1, 2, 2, 3, 3),
+#'                       lev2 = c("a", "b", "b", "c", "a", "c"))
+#' ex_dict <- data.frame(lev2 = c("a", "b", "c"),
+#'                       lev3 = c("x", "x", "y"))
+#'
+#' graph <- get_multipartite_from_df(data = list(ex_data, ex_dict),
+#'                                   colnames = c("lev1", "lev2", "lev3"))
+#'
+#' @export
+get_multipartite_from_df <- function(data, colnames, weights = NULL){
+  if(is.null(weights)){
+    weights <- c(TRUE, rep(FALSE, length(colnames)-2))
+  }
+  r <- vector("list", length(colnames) - 1)
 
+  if(is.data.frame(data)){
+    data <- data[, colnames]
+    data[] <- lapply(data, function(x) {if(!is.character(x)) as.character(x) else x})
+    for(i in 1:(length(colnames) - 1)){
+      r[[i]] <- aggregate(data[, colnames[i]], data[, colnames[i:(i+1)]], FUN = length)
+      names(r[[i]]) <- c("node_from", "node_to", "weight")
+      if(!weights[i]){
+        r[[i]]$weight <- 1
+      }
+      r[[i]]$part_from <- i
+      r[[i]]$part_to <- i + 1
+      r[[i]] <- r[[i]][, c("part_from", "node_from", "part_to", "node_to", "weight")]
+    }
+
+  } else if(is.list(data)){
+    for(i in 1:(length(colnames) - 1)){
+      data[[i]] <- data[[i]][, colnames[i:(i+1)]]
+      data[[i]][] <- lapply(data[[i]], function(x) {if(!is.character(x)) as.character(x) else x})
+      r[[i]] <- aggregate(data[[i]][, colnames[i]], data[[i]][, colnames[i:(i+1)]], FUN = length)
+      names(r[[i]]) <- c("node_from", "node_to", "weight")
+      if(!weights[i]){
+        r[[i]]$weight <- 1
+      }
+      r[[i]]$part_from <- i
+      r[[i]]$part_to <- i + 1
+      r[[i]] <- r[[i]][, c("part_from", "node_from", "part_to", "node_to", "weight")]
+    }
+  }
+
+  r <- do.call("rbind", r)
+  x <- get_multipartite(data = r)
+  return(x)
+}
 
 #' @title Compute the transition matrix of a random walk following a path between the parts
 #' of a multipartite graph.
