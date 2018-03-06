@@ -156,7 +156,7 @@ triversity.env$verbose <- TRUE
 #' @export
 get_multipartite <- function (filename=NULL, data=NULL)
 {
-    if (is.null (filename) && is.null (data)) { stop ("'filename' or 'data' has to be specified") }
+    if (is.null (filename) && is.null (data)) { stop ("'filename' or 'data' needs to be specified") }
     if (!is.null (filename) && !is.null (data)) { stop ("'filename' and 'data' cannot be both specified at the same time") }
 
     ## LOAD DATA
@@ -165,7 +165,7 @@ get_multipartite <- function (filename=NULL, data=NULL)
     total_time <- time
 
     if (!is.null (filename)) { data <- utils::read.table (filename, stringsAsFactors=FALSE) }
-    if (length(colnames(data)) < 4) { stop ("input data should have at least 4 columns") }
+    if (length(colnames(data)) < 4) { stop ("input data needs to have at least 4 columns") }
     
     colnames(data)[1:4] <- c ('part_from', 'node_from', 'part_to', 'node_to')
     if (ncol(data) > 4) { colnames(data)[5] <- 'weight' } else { data$weight <- 1 }
@@ -347,16 +347,17 @@ compute_transition_from_path <- function (graph, path)
 #' be as long as wanted, with eventual cycles, and each string it contains should refer to a
 #' label in \code{graph$parts}.
 #' 
-#' @param initial_distribution (optional) A vector of floats in [\code{0},\code{1}] and
-#' summing to \code{1} giving the probability distribution to start with at the first part
-#' of the input \code{path}. It should hence contain as many values as there are nodes in the
-#' corresponding part. If not specified, this distribution is assumed uniform.
+#' @param nodes (optional) A vector of character strings giving the labels of the nodes
+#' in the first part of the input \code{path} from which the random walk starts. Only these
+#' nodes are then considered to have a non-null starting probability, optionnally specified by
+#' the input \code{distribution}. If not specified, all nodes are considered to have a
+#' non-null starting probability.
 #'
-#' @param initial_node (optional) A character string giving the label of a node in the first
-#' part of the input \code{path}. This node is then considered to have probability one, thus
-#' being equivalent to specifying an \code{initial_distribution} with only zeros except for
-#' one node. If not specified, no such node is defined and the initial distribution is then
-#' assumed uniform.
+#' @param distribution (optional) A vector of floats in [\code{0},\code{1}],
+#' summing to \code{1} giving the probability distribution to start with at the first part
+#' of the input \code{path}. It should hence have the same size than \code{nodes} (if
+#' specified) or than this first part (else). If not specified, this distribution is assumed
+#' to be uniform.
 #'
 #' @return A vector of floats in [\code{0},\code{1}] and summing to \code{1} giving the
 #' probability distribution of the random walk when arriving at the last part, after having
@@ -366,44 +367,53 @@ compute_transition_from_path <- function (graph, path)
 #' data (tripartite_example)
 #' graph <- get_multipartite (data=tripartite_example)
 #'
-#' path <- c(2,1,2,3)
-#' as.matrix (get_distribution_from_path (graph, path))
-#' as.matrix (get_distribution_from_path (graph, path, initial_distribution=c(1/3,0,0,2/3)))
-#' as.matrix (get_distribution_from_path (graph, path, initial_node='i2'))
+#' as.matrix (get_distribution_from_path (graph, c(2,3)))
+#' as.matrix (get_distribution_from_path (graph, c(2,3), distribution=c(2/3,0,1/3,0)))
+#' as.matrix (get_distribution_from_path (graph, c(2,3), nodes=c('i3','i1')))
+#' as.matrix (get_distribution_from_path (graph, c(2,3), nodes=c('i3','i1'),
+#'                                        distribution=c(1/3,2/3)))
 #' 
 #' @export
-get_distribution_from_path <- function (graph, path, initial_distribution=NULL, initial_node=NULL)
+get_distribution_from_path <- function (graph, path, nodes=NULL, distribution=NULL)
 {
     path <- as.character (path)
     if (!all (path %in% graph$parts)) { stop ("'path' contains unknown part") }
-    
-    if (!is.null (initial_node) && !is.null (initial_distribution)) { stop ("'initial node' and 'initial distribution' cannot be both specified at the same time") }
+
+    ##if (!is.null (distribution) && abs (sum (distribution) - 1) > triversity.env$distribution_precision) { stop ("'distribution' does not sum to 1") }
 
     ## INITIALISE DISTRIBUTION
     length <- length (graph$nodes[[path[1]]])
     
-    if (is.null (initial_node) && is.null (initial_distribution))
+    if (is.null (nodes) && is.null (distribution))
     {
-        distribution <- rep (1 / length, length)
-        names (distribution) <- graph$nodes[[path[1]]]
+        full_distribution <- rep (1 / length, length)
+        names (full_distribution) <- graph$nodes[[path[1]]]
     }
 
-    if (!is.null (initial_node))
+    else if (!is.null (nodes))
     {
-        if (!(initial_node %in% graph$nodes[[path[1]]])) { stop ("'initial node' was not found") }
-        
-        distribution <- rep (0, length)
-        names (distribution) <- graph$nodes[[path[1]]]
-        distribution[initial_node] <- 1
+        if (!all (nodes %in% graph$nodes[[path[1]]])) { stop ("Some 'nodes' are not contained in part ", path[1]) }
+
+        full_distribution <- rep (0, length)
+        names (full_distribution) <- graph$nodes[[path[1]]]
+
+        if (!is.null (distribution))
+        {
+            if (length (distribution) != length (nodes)) { stop ("'distribution' has not the proper length") }
+
+            full_distribution[nodes] <- distribution
+        }
+
+        else { full_distribution[nodes] <- 1 / length (nodes) }
     }
     
-    if (!is.null (initial_distribution))
+    else if (is.null (nodes) && !is.null (distribution))
     {
-        if (length (initial_distribution) != length) { stop ("'initial distribution' has not the proper length") }
-        if (abs (sum (initial_distribution) - 1) > triversity.env$distribution_precision) { stop ("'initial distribution' does not sum to 1") }
+        if (length (distribution) != length) { stop ("'distribution' has not the proper length") }
+        ##if (abs (sum (distribution) - 1) > triversity.env$distribution_precision) { stop ("'distribution' does not sum to 1") }
 
-        distribution <- initial_distribution
-        names (distribution) <- graph$nodes[[path[1]]]
+        full_distribution <- distribution
+        names (full_distribution) <- graph$nodes[[path[1]]]
     }
 
     ## COMPUTE DISTRIBUTION
@@ -411,10 +421,10 @@ get_distribution_from_path <- function (graph, path, initial_distribution=NULL, 
     {
         compute_transition_from_path (graph, path)
         if (is.null (graph$edges$Climb(path)$matrix)) { return (NULL) }
-        distribution <- as.simple_triplet_matrix (crossprod_simple_triplet_matrix (distribution, graph$edges$Climb(path)$matrix))
+        full_distribution <- as.simple_triplet_matrix (crossprod_simple_triplet_matrix (full_distribution, graph$edges$Climb(path)$matrix))
     }
     
-    return (distribution)
+    return (full_distribution)
 }
 
 
@@ -430,6 +440,11 @@ get_distribution_from_path <- function (graph, path, initial_distribution=NULL, 
 #' 
 #' @param distribution A vector of floats in [\code{0},\code{1}] and summing to \code{1}
 #' giving the probability distribution whose diversity is measured.
+#' 
+#' @param reference_distribution (optional) A vector of floats in [\code{0},\code{1}],
+#' summing to \code{1} and having the same length than \code{distribution}, giving the
+#' reference probability distribution relatively to which the diversity is measured. If not
+#' specified, it is assumed uniform and the absolute diversity is hence returned.
 #' 
 #' @param order A vector of positive floats (possibly including \code{Inf}) giving the orders
 #' of the diversity measures to be computed. If neither \code{order} nor \code{measure} is
@@ -447,9 +462,12 @@ get_distribution_from_path <- function (graph, path, initial_distribution=NULL, 
 #'
 #' get_diversity_from_distribution (distribution)
 #' get_diversity_from_distribution (distribution, order=c(0,Inf), measure='entropy')
+#'
+#' reference_distribution <- c (1/3, 1/3, 1/6, 1/6)
+#' get_diversity_from_distribution (distribution, reference_distribution)
 #' 
 #' @export
-get_diversity_from_distribution <- function (distribution, order=NULL, measure=NULL)
+get_diversity_from_distribution <- function (distribution, reference_distribution=NULL, order=NULL, measure=NULL)
 {
     if (triversity.env$verbose) { message ('Computing diversity') }
     time <- Sys.time()
@@ -460,39 +478,74 @@ get_diversity_from_distribution <- function (distribution, order=NULL, measure=N
         measure <- c ('richness', 'entropy','herfindahl','bergerparker')
     }
     
-    if (!is.null (order) && any (order < 0)) { stop ("'order' should be positive") }
-    if (!is.null (measure) && any (! measure %in% c ('richness', 'entropy','herfindahl','bergerparker'))) { stop ("'measure' unknown (possible measures are 'richness', 'entropy', 'herfindahl', and 'bergerparker')") }
+    if (!is.null (order) && any (order < 0)) { stop ("'order' needs to be positive") }
+    if (!is.null (measure) && any (! measure %in% c ('richness', 'entropy','herfindahl','bergerparker'))) { stop ("unknown 'measure', possible measures are 'richness', 'entropy', 'herfindahl', and 'bergerparker'") }
 
-    if (abs (sum (distribution) - 1) > triversity.env$distribution_precision) { stop ("'distribution' does not sum to 1") }
+    ##if (abs (sum (distribution) - 1) > triversity.env$distribution_precision) { stop ("'distribution' does not sum to 1") }
 
-    distribution <- distribution [distribution != 0] # suppress null values in the distribution
+    distribution_length <- length (distribution)
+    if (! is.null (reference_distribution))
+    {
+        if (length (distribution) != length (reference_distribution)) { stop ("'reference distribution' needs to have the same size than 'distribution'") }
+        ##if (abs (sum (reference_distribution) - 1) > triversity.env$distribution_precision) { stop ("'reference distribution' does not sum to 1") }
+    }
+
+    # suppress null values in the distribution
+    if (! is.null (reference_distribution)) { reference_distribution <- reference_distribution [distribution != 0] }
+    distribution <- distribution [distribution != 0]
 
     diversity <- c()
 
-    for (o in order)
+    if (is.null (reference_distribution))
     {
-        if (o == 1) { d <- 1 / prod (distribution ^ distribution) } # order tends towards 1
-        else if (o == Inf) { d <- 1 / max (distribution) } # order tends towards Inf
-        else { d <- sum (distribution ^ o) ^ (1/(1-o)) }
+        for (o in order)
+        {
+            if (o == 0) { d <- length (distribution) } # order equals 0
+            if (o == 1) { d <- 1 / prod (distribution ^ distribution) } # order tends towards 1
+            else if (o == Inf) { d <- 1 / max (distribution) } # order tends towards Inf
+            else { d <- sum (distribution ^ o) ^ (1/(1-o)) }
+            
+            diversity <- append(diversity,d)
+        }
         
-        diversity <- append(diversity,d)
+        for (m in measure)
+        {
+            if (m == 'richness') { d <- length (distribution) }
+            else if (m == 'entropy') { d <- - sum (distribution * log2 (distribution)) }
+            else if (m == 'herfindahl') { d <- sum (distribution ^ 2) }
+            else if (m == 'bergerparker') { d <- max (distribution) }
+            
+            diversity <- append(diversity,d)
+        }
     }
-    
-    for (m in measure)
-    {
-        if (m == 'richness') { d <- length (distribution) }
-        else if (m == 'entropy') { d <- - sum (distribution * log2 (distribution)) }
-        else if (m == 'herfindahl') { d <- sum (distribution ^ 2) }
-        else if (m == 'bergerparker') { d <- max (distribution) }
+
+    else {
+        for (o in order)
+        {
+            if (o == 0) { d <- distribution_length * sum (reference_distribution) } # order equals 0
+            if (o == 1) { d <- distribution_length / prod ((distribution / reference_distribution) ^ distribution) } # order tends towards 1
+            else if (o == Inf) { d <- distribution_length / max (distribution / reference_distribution) } # order tends towards Inf
+            else { d <- distribution_length / sum (distribution ^ o / reference_distribution ^ (o-1)) ^ (1/(o-1)) }
+            
+            diversity <- append(diversity,d)
+        }
         
-        diversity <- append(diversity,d)
+        for (m in measure)
+        {
+            if (m == 'richness') { d <- distribution_length * sum (reference_distribution) }
+            else if (m == 'entropy') { d <- log2 (distribution_length) - sum (distribution * log2 (distribution / reference_distribution)) }
+            else if (m == 'herfindahl') { d <- sum (distribution ^ 2 / reference_distribution) / distribution_length }
+            else if (m == 'bergerparker') { d <- max (distribution / reference_distribution) / distribution_length }
+            
+            diversity <- append(diversity,d)
+        }
     }
 
     names <- c()
     if (!is.null(order)) { names <- paste ('order', order, sep='') }
     names <- append (names, measure)
     names (diversity) <- names
-
+    
     if (triversity.env$verbose) { message ('-> done in ', round (as.numeric (Sys.time() - time, units="secs"), 3), ' sec') }
 
     return (diversity)
@@ -518,8 +571,8 @@ get_diversity_from_distribution <- function (distribution, order=NULL, measure=N
 #'
 #' @param type Either \code{'individual'}, to separately compute all individual diversities,
 #' or \code{'mean'}, to compute their geometric mean.
-#' 
-#' @param mean_distribution (optional, only when \code{type == 'mean'}) A vector of floats
+#'
+#' @param distribution (optional, only when \code{type == 'mean'}) A vector of floats
 #' in [\code{0},\code{1}] and summing to \code{1} giving the probability distribution that
 #' is used to weight the diversity values when computing their geometric means. It should
 #' hence contain as many values as there are rows in the input \code{transition}. If not
@@ -541,21 +594,26 @@ get_diversity_from_distribution <- function (distribution, order=NULL, measure=N
 #'
 #' get_diversity_from_transition (transition, type='individual', order=c(0,Inf), measure='entropy')
 #' get_diversity_from_transition (transition, type='mean')
-#' get_diversity_from_transition (transition, type='mean', mean_distribution=c(1/4,3/4))
+#' get_diversity_from_transition (transition, type='mean', distribution=c(1/4,3/4))
 #' 
 #' @export
-get_diversity_from_transition <- function (transition, type='individual', mean_distribution=NULL, order=NULL, measure=NULL)
+get_diversity_from_transition <- function (transition, type='individual', mean_type='geometric', distribution=NULL, order=NULL, measure=NULL)
 {
+    if (triversity.env$verbose) { message ('Computing diversity') }
+    time <- Sys.time()
+
     if (is.null (order) && is.null (measure))
     {
         order <- c (0, 1, 2, Inf)
         measure <- c ('richness', 'entropy','herfindahl','bergerparker')
     }
     
-    if (!is.null (order) && any (order < 0)) { stop ("'order' should be positive") }
-    if (!is.null (measure) && any (! measure %in% c ('richness', 'entropy','herfindahl','bergerparker'))) { stop ("'measure' unknown (possible measures are 'richness', 'entropy', 'herfindahl', and 'bergerparker')") }
+    if (!is.null (order) && any (order < 0)) { stop ("'order' needs to be positive") }
+    if (!is.null (measure) && any (! measure %in% c ('richness', 'entropy','herfindahl','bergerparker'))) { stop ("unknown 'measure' (possible measures are 'richness', 'entropy', 'herfindahl', and 'bergerparker')") }
 
-    if (! type %in% c('individual', 'mean')) { stop ("'type' unknown") }
+    if (! type %in% c('individual', 'mean')) { stop ("unknown 'type'") }
+    if (type == 'individual' && ! is.null (distribution)) { stop ("'distribution' cannot be used when computing individual diversities") }
+    if (! mean_type %in% c('arithmetic', 'geometric')) { stop ("unknown 'mean type'") }
 
     if (!is.simple_triplet_matrix (transition)) { transition <- as.simple_triplet_matrix (transition) }
 
@@ -565,19 +623,16 @@ get_diversity_from_transition <- function (transition, type='individual', mean_d
         dimnames(transition)[[2]] <- seq (1, dim(transition)[2])
     }
 
-    if (!is.null(mean_distribution)) {
-        mean_distribution <- as.vector (mean_distribution)
-        if (length (mean_distribution) != transition$nrow) { stop ("'mean distribution' has not the proper length") }
-        if (abs (sum (mean_distribution) - 1) > triversity.env$distribution_precision) { stop ("'mean distribution' does not sum to 1") }
+    if (! is.null (distribution)) {
+        distribution <- as.vector (distribution)
+        if (length (distribution) != transition$nrow) { stop ("'distribution' has not the proper length") }
+        ##if (abs (sum (distribution) - 1) > triversity.env$distribution_precision) { stop ("'distribution' does not sum to 1") }
     }
 
     ## TODO: test transition
 
-    if (triversity.env$verbose) { message ('Computing diversity') }
-    time <- Sys.time()
-
     names <- c()
-    if (!is.null(order)) { names <- paste ('order', order, sep='') }
+    if (! is.null (order)) { names <- paste ('order', order, sep='') }
     names <- append (names, measure)
 
     ## BUILD
@@ -588,23 +643,26 @@ get_diversity_from_transition <- function (transition, type='individual', mean_d
         i <- transition$i[k]
         v <- transition$v[k]
 
-        j <- 1
-        for (o in order)
+        if (v > 0)
         {
-            if (o == 0) { diversity[i,j] <- diversity[i,j] + 1 } # order tends towards 1
-            if (o == 1) { diversity[i,j] <- diversity[i,j] - v * log2(v) } # order tends towards 1
-            else if (o == Inf) { diversity[i,j] <- max (diversity[i,j], v) } # order tends towards Inf
-            else { diversity[i,j] <- diversity[i,j] + v ^ o }
-            j <- j+1
-        }
-        
-        for (m in measure)
-        {
-            if (m == 'richness') { diversity[i,j] <- diversity[i,j] + 1 }
-            else if (m == 'entropy') { diversity[i,j] <- diversity[i,j] - v * log2(v) }
-            else if (m == 'herfindahl') { diversity[i,j] <- diversity[i,j] + v^2 }
-            else if (m == 'bergerparker') { diversity[i,j] <- max (diversity[i,j], v) }
-            j <- j+1
+            j <- 1
+            for (o in order)
+            {
+                if (o == 0) { diversity[i,j] <- diversity[i,j] + 1 } # order tends towards 1
+                else if (o == 1) { diversity[i,j] <- diversity[i,j] - v * log2(v) } # order tends towards 1
+                else if (o == Inf) { diversity[i,j] <- max (diversity[i,j], v) } # order tends towards Inf
+                else { diversity[i,j] <- diversity[i,j] + v ^ o }
+                j <- j+1
+            }
+            
+            for (m in measure)
+            {
+                if (m == 'richness') { diversity[i,j] <- diversity[i,j] + 1 }
+                else if (m == 'entropy') { diversity[i,j] <- diversity[i,j] - v * log2(v) }
+                else if (m == 'herfindahl') { diversity[i,j] <- diversity[i,j] + v^2 }
+                else if (m == 'bergerparker') { diversity[i,j] <- max (diversity[i,j], v) }
+                j <- j+1
+            }
         }
     }
 
@@ -619,40 +677,89 @@ get_diversity_from_transition <- function (transition, type='individual', mean_d
     }
 
     if (type == 'mean') {
-        if (!is.null(mean_distribution)) {
-            mean_diversity <- c()
+        
+        if (mean_type == 'arithmetic') {
+            
+            if (!is.null(distribution)) {
+                mean_diversity <- c()
 
-            for (o in order) {
-                md <- prod (diversity[,paste('order',o,sep='')] ^ mean_distribution)
-                mean_diversity <- append (mean_diversity, md)
+                for (o in order) {
+                    md <- sum (diversity[,paste('order',o,sep='')] * distribution)
+                    mean_diversity <- append (mean_diversity, md)
+                }
+
+                for (m in measure) {
+                    if (m == 'richness') { md <- sum (diversity[,m] * distribution) }
+                    else if (m == 'entropy') { md <- log2 (sum (distribution * 2^diversity[,m])) }
+                    else if (m == 'herfindahl') { md <- 1 / sum (1/diversity[,m] * distribution) }
+                    else if (m == 'bergerparker') { md <- 1 / sum (1/diversity[,m] * distribution) }
+                    mean_diversity <- append (mean_diversity, md)
+                }
+
             }
 
-            for (m in measure) {
-                if (m == 'richness') { md <- prod (diversity[,m] ^ mean_distribution) }
-                else if (m == 'entropy') { md <- sum (mean_distribution * diversity[,m]) }
-                else if (m == 'herfindahl') { md <- prod (diversity[,m] ^ mean_distribution) }
-                else if (m == 'bergerparker') { md <- prod (diversity[,m] ^ mean_distribution) }
-                mean_diversity <- append (mean_diversity, md)
-            }
+            else {
+                weight <- 1/length(dimnames(transition)[[1]])
+                mean_diversity <- c()
 
-        } else {
-            weight <- 1/length(dimnames(transition)[[1]])
-            mean_diversity <- c()
+                for (o in order) {
+                    md <- sum (diversity[,paste('order',o,sep='')] * weight)
+                    mean_diversity <- append (mean_diversity, md)
+                }
 
-            for (o in order) {
-                md <- prod (diversity[,paste('order',o,sep='')] ^ weight)
-                mean_diversity <- append (mean_diversity, md)
-            }
-
-            for (m in measure) {
-                if (m == 'richness') { md <- prod (diversity[,m] ^ weight) }
-                else if (m == 'entropy') { md <- sum (weight * diversity[,m]) }
-                else if (m == 'herfindahl') { md <- prod (diversity[,m] ^ weight) }
-                else if (m == 'bergerparker') { md <- prod (diversity[,m] ^ weight) }
-                mean_diversity <- append (mean_diversity, md)
+                for (m in measure) {
+                    if (m == 'richness') { md <- sum (diversity[,m] * weight) }
+                    else if (m == 'entropy') { md <- log2 (sum (weight * 2^diversity[,m])) }
+                    else if (m == 'herfindahl') { md <- 1 / sum (1/diversity[,m] * weight) }
+                    else if (m == 'bergerparker') { md <- 1 / sum (1/diversity[,m] * weight) }
+                    mean_diversity <- append (mean_diversity, md)
+                }
             }
         }
-        
+
+        else if (mean_type == 'geometric') {
+
+            if (!is.null(distribution)) {
+
+                if (abs (sum (distribution) - 1) > triversity.env$distribution_precision) { mean_diversity <- rep (0, length(order)+length(measure)) }
+                
+                else {
+                    mean_diversity <- c()
+
+                    for (o in order) {
+                        md <- prod (diversity[,paste('order',o,sep='')] ^ distribution)
+                        mean_diversity <- append (mean_diversity, md)
+                    }
+
+                    for (m in measure) {
+                        if (m == 'richness') { md <- prod (diversity[,m] ^ distribution) }
+                        else if (m == 'entropy') { md <- sum (distribution * diversity[,m]) }
+                        else if (m == 'herfindahl') { md <- prod (diversity[,m] ^ distribution) }
+                        else if (m == 'bergerparker') { md <- prod (diversity[,m] ^ distribution) }
+                        mean_diversity <- append (mean_diversity, md)
+                    }
+                }
+            }
+
+            else {
+                weight <- 1/length(dimnames(transition)[[1]])
+                mean_diversity <- c()
+
+                for (o in order) {
+                    md <- prod (diversity[,paste('order',o,sep='')] ^ weight)
+                    mean_diversity <- append (mean_diversity, md)
+                }
+
+                for (m in measure) {
+                    if (m == 'richness') { md <- prod (diversity[,m] ^ weight) }
+                    else if (m == 'entropy') { md <- sum (weight * diversity[,m]) }
+                    else if (m == 'herfindahl') { md <- prod (diversity[,m] ^ weight) }
+                    else if (m == 'bergerparker') { md <- prod (diversity[,m] ^ weight) }
+                    mean_diversity <- append (mean_diversity, md)
+                }
+            }
+        }
+
         names (mean_diversity) <- dimnames(diversity)[[2]]
         diversity <- mean_diversity
     }
@@ -692,24 +799,20 @@ get_diversity_from_transition <- function (transition, type='individual', mean_d
 #' \code{'mean'}, to compute their geometric mean, or \code{'collective'}, to compute the
 #' overall diversity.
 #' 
-#' @param mean_distribution (optional, only when \code{type == 'mean'}) A vector of floats
-#' in [\code{0},\code{1}] and summing to \code{1} giving the probability distribution that
-#' is used to weight the diversity values when computing their geometric means. It should
-#' hence contain as many values as there are rows in the input \code{transition}. If not
-#' specified, this distribution is assumed uniform.
-#' 
-#' @param initial_distribution (optional, only when \code{type == 'collective'})
-#' A vector of floats in [\code{0},\code{1}] and
-#' summing to \code{1} giving the probability distribution to start with at the first part
-#' of the input \code{path}. It should hence contain as many values as there are nodes in the
-#' corresponding part. If not specified, this distribution is assumed uniform.
+#' @param nodes (optional) A vector of character strings giving the labels of the nodes
+#' in the first part of the input \code{path} to be taken into account for the computation. If
+#' \code{type == 'individual'} or \code{type == 'mean'}, only the diversity of these nodes is
+#' measured. If \code{type == 'collective'}, only these nodes are considered to have a non-null
+#' starting probability, optionnally specified by the input \code{initial_distribution}. If
+#' not specified, all nodes are taken into account.
 #'
-#' @param initial_node (optional, only when \code{type == 'collective'})
-#' A character string giving the label of a node in the first
-#' part of the input \code{path}. This node is then considered to have probability one, thus
-#' being equivalent to specifying an \code{initial_distribution} with only zeros except for
-#' one node. If not specified, no such node is defined and the initial distribution is then
-#' assumed uniform.
+#' @param distribution (optional, only when \code{type != 'individual'}) A vector of floats in
+#' [\code{0},\code{1}] and summing to \code{1}, either giving the probability distribution that
+#' is used to weight the diversity values when computing their geometric means (if
+#' \code{type == 'mean'}) or the probability distribution to start with at the first part of
+#' the input \code{path} (if \code{type == 'collective'}). It should hence have the same size
+#' than \code{initial_nodes} (if specified) or than this first part (else). If not specified,
+#' this distribution is assumed to be uniform.
 #'
 #' @param order A vector of positive floats (possibly including \code{Inf}) giving the orders
 #' of the diversity measures to be computed. If neither \code{order} nor \code{measure} is
@@ -726,27 +829,31 @@ get_diversity_from_transition <- function (transition, type='individual', mean_d
 #' @examples
 #' data (tripartite_example)
 #' graph <- get_multipartite (data=tripartite_example)
-#' path <- c(1,2,3)
 #' 
+#' # Individual diversities
+#' get_diversity_from_path (graph, c(3,2,1), 'individual', measure=c('entropy','herfindahl'))
+#' get_diversity_from_path (graph, c(3,2,1), 'individual', order=c(0,1,Inf))
+#' get_diversity_from_path (graph, c(3,2,1), 'individual', nodes='t3')
 #' 
-#' get_diversity_from_path (graph, path, 'individual', measure=c('entropy','herfindahl'))
-#' get_diversity_from_path (graph, path, 'individual', order=c(0,1,Inf))
-#'
 #' # Mean of individual diversities
-#' get_diversity_from_path (graph, path, 'mean')
-#' get_diversity_from_path (graph, path, 'mean', mean_distribution=c(1/3,2/3))
-#'
+#' get_diversity_from_path (graph, c(3,2,1), 'mean')
+#' get_diversity_from_path (graph, c(3,2,1), 'mean', distribution=c(1/3,0,2/3))
+#' get_diversity_from_path (graph, c(3,2,1), 'mean',
+#'                          nodes=c('t3','t1'), distribution=c(2/3,1/3))
+#' 
 #' # Collective diversities
-#' get_diversity_from_path (graph, path, 'collective')
-#' get_diversity_from_path (graph, path, 'collective', initial_distribution=c(0.75,0.25))
+#' get_diversity_from_path (graph, c(3,2,1), 'collective')
+#' get_diversity_from_path (graph, c(3,2,1), 'collective', distribution=c(1/3,0,2/3))
+#' get_diversity_from_path (graph, c(3,2,1), 'collective',
+#'                          nodes=c('t3','t1'), distribution=c(2/3,1/3))
 #' 
 #' @export
 get_diversity_from_path <- function (graph,
                                      path,
                                      type='individual',
-                                     mean_distribution=NULL,
-                                     initial_distribution=NULL,
-                                     initial_node=NULL,
+                                     mean_type='geometric',
+                                     nodes=NULL,
+                                     distribution=NULL,
                                      order=NULL,
                                      measure=NULL)
 {
@@ -754,22 +861,15 @@ get_diversity_from_path <- function (graph,
     if (!all (path %in% graph$parts)) { stop ("'path' contains unknown part") }
 
     if (! type %in% c('individual', 'mean', 'collective')) { stop ("'type' unknown") }
-    if (type == 'individual' && ! is.null (initial_distribution)) { stop ("'initial distribution' cannot be used when computing individual diversities") }
-    if (type == 'individual' && ! is.null (mean_distribution)) { stop ("'mean distribution' cannot be used when computing individual diversities") }
-    if (type == 'mean' && ! is.null (initial_distribution)) { stop ("'initial distribution' cannot be used when computing mean of individual diversities") }
-    if (type == 'mean' && ! is.null (initial_node)) { stop ("'initial node' cannot be used when computing mean of individual diversities") }
-    if (type == 'collective' && ! is.null (initial_node)) { stop ("'initial node' cannot be used when computing collective diversities") }
-    if (type == 'collective' && ! is.null (mean_distribution)) { stop ("'mean distribution' cannot be used when computing collective diversities") }
+    if (type == 'individual' && ! is.null (distribution)) { stop ("'distribution' cannot be used when computing individual diversities") }
 
-    if (type == 'individual' && !is.null (initial_node)) { type <- 'collective' }
-    
     diversity <- NULL
     if (type == 'individual')
     {
         compute_transition_from_path (graph, path)    
         transition <- graph$edges$Climb(path)$matrix
         if (is.null (transition)) { return (NULL) }
-        
+        if (!is.null (nodes)) { transition <- transition[nodes,] }
         diversity <- get_diversity_from_transition (transition, type='individual', order=order, measure=measure)
     }
     
@@ -778,12 +878,13 @@ get_diversity_from_path <- function (graph,
         compute_transition_from_path (graph, path)    
         transition <- graph$edges$Climb(path)$matrix
         if (is.null (transition)) { return (NULL) }
+        if (!is.null (nodes)) { transition <- transition[nodes,] }
 
-        diversity <- get_diversity_from_transition (transition, type='mean', mean_distribution=mean_distribution, order=order, measure=measure)
+        diversity <- get_diversity_from_transition (transition, type='mean', mean_type=mean_type, distribution=distribution, order=order, measure=measure)
     }
 
     else if (type == 'collective') {
-        distribution <- get_distribution_from_path (graph, path, initial_distribution=initial_distribution, initial_node=initial_node)
+        distribution <- get_distribution_from_path (graph, path, nodes=nodes, distribution=distribution)
         if (is.null (distribution)) { return (NULL) }
         
         diversity <- get_diversity_from_distribution (distribution, order=order, measure=measure)
